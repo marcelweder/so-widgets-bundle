@@ -2,7 +2,7 @@
 Tags: bundle, widget, button, slider, image, carousel, price table
 Requires at least: 3.9
 Tested up to: 4.2
-Stable tag: 1.2.2
+Stable tag: 1.2.3
 License: GPLv3 or later
 Contributors: gpriday, braam-genis
 
@@ -43,6 +43,10 @@ The SiteOrigin Widgets Bundle is the perfect platform to build widgets for your 
 3. An example of the button widget.
 
 == Changelog ==
+
+= 1.2.4 =
+* Fixed reference to siteorigin_widgets_is_google_webfont.
+* Fixed CSS URL.
 
 = 1.2.3 =
 * Fixed Javascript issue with Map widget in customizer.
