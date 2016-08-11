@@ -61,7 +61,7 @@ class SiteOrigin_Widget_Field_Repeater extends SiteOrigin_Widget_Field_Container
 			<?php echo ! empty( $this->scroll_count ) ? 'data-scroll-count="' . esc_attr( $this->scroll_count ) . '"' : '' ?>
 			<?php if( ! empty( $this->readonly ) ) echo 'readonly' ?>>
 			<div class="siteorigin-widget-field-repeater-top">
-				<div class="siteorigin-widget-field-repeater-expend"></div>
+				<div class="siteorigin-widget-field-repeater-expand"></div>
 				<h3><?php echo esc_html( $this->label ) ?></h3>
 			</div>
 			<div class="siteorigin-widget-field-repeater-items">
@@ -116,11 +116,11 @@ class SiteOrigin_Widget_Field_Repeater extends SiteOrigin_Widget_Field_Container
 	 *
 	 * @return array|mixed
 	 */
-	function sanitize_field_input( $value ){
+	function sanitize_field_input( $value, $instance ){
 		if( empty($value) ) return array();
 
 		foreach( $value as &$el ) {
-			$el = parent::sanitize_field_input( $el );
+			$el = parent::sanitize_field_input( $el, $instance );
 		}
 
 		return $value;

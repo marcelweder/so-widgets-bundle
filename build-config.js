@@ -11,6 +11,7 @@ module.exports = {
         src: [
             'admin/**/*.less',
             'base/**/*.less',
+            'css/**/*.less',
             'widgets/**/*.less',
             '!base/less/*.less',
             '!widgets/**/styles/*.less'
@@ -32,6 +33,9 @@ module.exports = {
             '!{tmp,tmp/**}'                     // Ignore dist/ and contents
         ]
     },
+    bust : {
+        src: []
+    },
     copy: {
         src: [
             '**/!(*.js|*.less)',                // Everything except .js and .less files
@@ -44,7 +48,8 @@ module.exports = {
             '!phpunit.xml',                     // Not the unit tests configuration file.
             '!so-widgets-bundle.php',           // Not the base plugin file. It is copied by the 'version' task.
             '!readme.txt',                      // Not the readme.txt file. It is copied by the 'version' task.
-            '!readme.md'                        // Ignore the readme.md file. It is for the github repo.
+            '!readme.md',                       // Ignore the readme.md file. It is for the github repo.
+            '!.editorconfig',                   // Ignore .editorconfig file. Only for development.
         ]
     }
 };

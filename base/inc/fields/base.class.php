@@ -93,6 +93,10 @@ abstract class SiteOrigin_Widget_Field_Base {
 	 */
 	protected $optional;
 	/**
+	 * @var bool Is this field required.
+	 */
+	protected $required;
+	/**
 	 * Specifies an additional sanitization to be performed. Available sanitizations are 'email' and 'url'. If the
 	 * specified sanitization isn't recognized it is assumed to be a custom sanitization and a filter is applied using
 	 * the pattern `'siteorigin_widgets_sanitize_field_' . $sanitize`, in case the sanitization is defined elsewhere.
@@ -101,6 +105,26 @@ abstract class SiteOrigin_Widget_Field_Base {
 	 * @var string
 	 */
 	protected $sanitize;
+	/**
+	 * Reference to the parent widget required for creating child fields.
+	 *
+	 * @access private
+	 * @var SiteOrigin_Widget
+	 */
+	protected $for_widget;
+	/**
+	 * An array of field names of parent containers.
+	 *
+	 * @var array
+	 */
+	protected $parent_container;
+	/**
+	 * Whether or not this field contains other fields.
+	 *
+	 * @access protected
+	 * @var boolean
+	 */
+	protected $is_container;
 
 
 	/* ============================================================================================================== */
@@ -137,9 +161,12 @@ abstract class SiteOrigin_Widget_Field_Base {
 	 * @param $element_name string The name to be used as the name attribute of the wrapping HTML element.
 	 * @param $field_options array Configuration for the field.
 	 *
+	 * @param SiteOrigin_Widget $for_widget
+	 * @param array $parent_container
+	 *
 	 * @throws InvalidArgumentException
 	 */
-	public function __construct( $base_name, $element_id, $element_name, $field_options ) {
+	public function __construct( $base_name, $element_id, $element_name, $field_options, $for_widget = null, $parent_container = array() ) {
 		if( isset( $field_options['type'] ) ) {
 			$this->type = $field_options['type'];
 		}
@@ -153,15 +180,21 @@ abstract class SiteOrigin_Widget_Field_Base {
 		$this->field_options = $field_options;
 		$this->javascript_variables = array();
 
+		$this->for_widget = $for_widget;
+		$this->parent_container = $parent_container;
+
+		$this->init();
+	}
+
+	private function init() {
+		$this->init_options();
 		$this->initialize();
 	}
 
 	/**
-	 * Initialization function which may be overridden if required, in which case, it is recommended that the parent
-	 * class' function is still called using `parent::initialize();`.
+	 * Initialization function which may be overridden if required.
 	 */
 	protected function initialize() {
-		$this->init_options();
 	}
 
 	/**
@@ -215,7 +248,7 @@ abstract class SiteOrigin_Widget_Field_Base {
 	 * @return array The modified array of description text CSS classes.
 	 */
 	protected function get_description_classes() {
-		return array( 'siteorigin-widget-field-description' );
+		return array( 'siteorigin-widget-description' );
 	}
 
 	/**
@@ -228,7 +261,6 @@ abstract class SiteOrigin_Widget_Field_Base {
 		if ( is_null( $value ) && isset( $this->default ) ) {
 			$value = $this->default;
 		}
-
 		$wrapper_attributes = array(
 			'class' => array(
 				'siteorigin-widget-field',
@@ -238,6 +270,7 @@ abstract class SiteOrigin_Widget_Field_Base {
 		);
 
 		if( !empty( $this->optional ) ) $wrapper_attributes['class'][] = 'siteorigin-widget-field-is-optional';
+		if( !empty( $this->required ) ) $wrapper_attributes['class'][] = 'siteorigin-widget-field-is-required';
 		$wrapper_attributes['class'] = implode(' ', array_map('sanitize_html_class', $wrapper_attributes['class']) );
 
 		if( !empty( $this->state_emitter ) ) {
@@ -282,11 +315,14 @@ abstract class SiteOrigin_Widget_Field_Base {
 		?>
 		<label for="<?php echo esc_attr( $this->element_id ) ?>" <?php $this->render_CSS_classes( $this->get_label_classes( $value, $instance ) ) ?>>
 			<?php
-		echo esc_html( $this->label );
-		if( !empty( $this->optional ) ) {
-			echo '<span class="field-optional">(' . __('Optional', 'so-widgets-bundle') . ')</span>';
-		}
-		?>
+			echo esc_html( $this->label );
+			if( !empty( $this->optional ) ) {
+				echo '<span class="field-optional">(' . __('Optional', 'so-widgets-bundle') . ')</span>';
+			}
+			if( !empty( $this->required ) ) {
+				echo '<span class="field-required">(' . __('Required', 'so-widgets-bundle') . ')</span>';
+			}
+			?>
 		</label>
 		<?php
 	}
@@ -315,11 +351,14 @@ abstract class SiteOrigin_Widget_Field_Base {
 	 * The default sanitization function.
 	 *
 	 * @param $value mixed The value to be sanitized.
+	 * @param $instance array The widget instance.
+	 * @param $old_value The old value of this field.
+	 *
 	 * @return mixed|string|void
 	 */
-	public function sanitize( $value ) {
+	public function sanitize( $value, $instance = array(), $old_value = null ) {
 
-		$value = $this->sanitize_field_input( $value );
+		$value = $this->sanitize_field_input( $value, $instance );
 
 		if( isset( $this->sanitize ) ) {
 			// This field also needs some custom sanitization
@@ -334,7 +373,12 @@ abstract class SiteOrigin_Widget_Field_Base {
 
 				default:
 					// This isn't a built in sanitization. Maybe it's handled elsewhere.
-					$value = apply_filters( 'siteorigin_widgets_sanitize_field_' . $this->sanitize, $value );
+					if( is_callable( $this->sanitize ) ) {
+						$value = call_user_func( $this->sanitize, $value, $old_value );
+					}
+					else if( is_string( $this->sanitize ) ) {
+						$value = apply_filters( 'siteorigin_widgets_sanitize_field_' . $this->sanitize, $value );
+					}
 					break;
 			}
 		}
@@ -368,15 +412,18 @@ abstract class SiteOrigin_Widget_Field_Base {
 	 * input received from their HTML form field.
 	 *
 	 * @param $value mixed The current value of this field.
+	 * @param $instance array The widget instance.
+	 *
 	 * @return mixed The sanitized value.
 	 */
-	abstract protected function sanitize_field_input( $value );
+	abstract protected function sanitize_field_input( $value, $instance );
 
 	/**
 	 * There are cases where a field may affect values on the widget instance, other than it's own input. It then becomes
 	 * necessary to perform additional sanitization on the widget instance, which should be done here.
 	 *
 	 * @param $instance
+	 * @return mixed
 	 */
 	public function sanitize_instance( $instance ) {
 		//Stub: This function may be overridden by subclasses wishing to sanitize additional instance fields.
