@@ -23,7 +23,7 @@ class SiteOrigin_Widget_Icon_Widget extends SiteOrigin_Widget {
 		);
 	}
 
-	function initialize_form() {
+	function get_widget_form() {
 		return array(
 			'icon' => array(
 				'type'  => 'icon',
@@ -69,7 +69,6 @@ class SiteOrigin_Widget_Icon_Widget extends SiteOrigin_Widget {
 			'color'    => $instance['color'],
 			'alignment'    => $instance['alignment'],
 			'size'     => $instance['size'],
-			'has_size' => empty( $instance['size'] ) ? 'false' : 'true',
 		);
 	}
 

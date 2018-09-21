@@ -13,6 +13,7 @@ module.exports = {
             'base/**/*.less',
             'css/**/*.less',
             'widgets/**/*.less',
+            'compat/**/*.less',
             '!base/less/*.less',
             '!widgets/**/styles/*.less'
         ],
@@ -26,6 +27,7 @@ module.exports = {
         src: [
             'admin/**/*.js',
             'base/**/*.js',
+            'compat/**/*.js',
             'js/**/*.js',
             'widgets/**/*.js',
             '!{node_modules,node_modules/**}',  // Ignore node_modules/ and contents
@@ -42,6 +44,7 @@ module.exports = {
             'base/less/*.less',                 // LESS libraries used in runtime styles
             'widgets/**/styles/*.less',         // All the widgets' runtime .less files
             '!widgets/**/styles/*.css',         // Don't copy any .css files compiled from runtime .less files
+            '!widgets/**/css/*.css',            // Don't copy any .css files compiled from .less files.
             '!{build,build/**}',                // Ignore build/ and contents
             '!{tests,tests/**}',                // Ignore tests/ and contents
             '!{tmp,tmp/**}',                    // Ignore tmp/ and contents

@@ -4,6 +4,14 @@
  * Class SiteOrigin_Widget_Field_Icon
  */
 class SiteOrigin_Widget_Field_Icon extends SiteOrigin_Widget_Field_Base {
+	/**
+	 * The number of visible rows in the icons selector.
+	 *
+	 * @access protected
+	 * @var int
+	 *
+	 */
+	protected $rows = 3;
 
 	protected $icons_callback;
 
@@ -18,6 +26,10 @@ class SiteOrigin_Widget_Field_Icon extends SiteOrigin_Widget_Field_Base {
 			<label><?php _e('Choose Icon', 'so-widgets-bundle') ?></label>
 		</div>
 
+		<a class="so-icon-remove" style="display: <?php echo !empty( $value ) ? 'inline-block' : 'none' ?>;"><?php esc_html_e( 'Remove', 'so-widgets-bundle' ) ?></a>
+
+		<div class="clear"></div>
+
 		<div class="siteorigin-widget-icon-selector siteorigin-widget-field-subcontainer">
 			<select class="siteorigin-widget-icon-family" >
 				<?php foreach( $widget_icon_families as $family_id => $family_info ) : ?>
@@ -30,10 +42,12 @@ class SiteOrigin_Widget_Field_Icon extends SiteOrigin_Widget_Field_Base {
 				<?php endforeach; ?>
 			</select>
 
+			<input type="search" class="siteorigin-widget-icon-search" placeholder="<?php esc_attr_e( 'Search Icons' ) ?>" />
+
 			<input type="hidden" name="<?php echo esc_attr( $this->element_name ) ?>" value="<?php echo esc_attr( $value ) ?>"
 			       class="siteorigin-widget-icon-icon siteorigin-widget-input" />
 
-			<div class="siteorigin-widget-icon-icons"></div>
+			<div class="siteorigin-widget-icon-icons" style="height: <?php echo ( $this->rows * 54 ) - 3 ?>px;"></div>
 		</div>
 		<?php
 	}
@@ -69,6 +83,11 @@ class SiteOrigin_Widget_Field_Icon extends SiteOrigin_Widget_Field_Base {
 		}
 
 		return $widget_icon_families;
+	}
+
+	public function enqueue_scripts(){
+		wp_enqueue_script( 'so-icon-field', plugin_dir_url( __FILE__ ) . 'js/icon-field' . SOW_BUNDLE_JS_SUFFIX .  '.js', array( 'jquery' ), SOW_BUNDLE_VERSION );
+		wp_enqueue_style( 'so-icon-field', plugin_dir_url( __FILE__ ) . 'css/icon-field.css', array( ), SOW_BUNDLE_VERSION );
 	}
 
 }
